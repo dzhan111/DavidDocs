@@ -1,27 +1,37 @@
-'use client'
-import Loader from '@/components/Loader'
-import { getClerkUsers } from '@/lib/actions/user.actions'
-import { ClientSideSuspense, LiveblocksProvider } from '@liveblocks/react'
-import { ReactNode } from 'react'
+'use client';
 
-const Provider = ({children} : {children : ReactNode}) => {
+import Loader from '@/components/Loader';
+import { getClerkUsers, getDocumentUsers } from '@/lib/actions/user.actions';
+import { useUser } from '@clerk/nextjs';
+import { ClientSideSuspense, LiveblocksProvider } from '@liveblocks/react/suspense';
+import { ReactNode } from 'react';
+
+const Provider = ({ children }: { children: ReactNode}) => {
+  const { user: clerkUser } = useUser();
+
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth"
-        resolveUsers={async({userIds}) =>{
-            const users = await getClerkUsers({userIds});
-            return users;
-        }
-    
-    }
+    <LiveblocksProvider 
+      authEndpoint="/api/liveblocks-auth"
+      resolveUsers={async ({ userIds }) => {
+        const users = await getClerkUsers({ userIds});
+
+        return users;
+      }}
+      resolveMentionSuggestions={async ({ text, roomId }) => {
+        const roomUsers = await getDocumentUsers({
+          roomId,
+          currentUser: clerkUser?.emailAddresses[0].emailAddress!,
+          text,
+        })
+
+        return roomUsers;
+      }}
     >
-      
-        <ClientSideSuspense fallback={<Loader/>}>
-          {children}
-        </ClientSideSuspense>
-  
+      <ClientSideSuspense fallback={<Loader />}>
+        {children}
+      </ClientSideSuspense>
     </LiveblocksProvider>
   )
 }
 
-// publicApiKey={"pk_dev_GNiLA-Vk_hIzYvWkGYik_SX4PKH0WXcN5DykqirsbBK6gERTQ0pc1EpCNMlwwT3-"}
 export default Provider

@@ -9,10 +9,11 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from "react"
 import ActiveCollaborators from "./ActiveCollaborators"
 import Loader from "./Loader"
+import ShareModal from "./ShareModal"
 import { Input } from "./ui/input"
 
-const CollaborativeRoom = ({roomId, roomMetadata} : CollaborativeRoomProps) => {
-  const currentUserType = 'editor';
+const CollaborativeRoom = ({roomId, roomMetadata, users, currentUserType} : CollaborativeRoomProps) => {
+  
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [documentTitle, setDocumentTitle] = useState(roomMetadata.title);
@@ -111,6 +112,12 @@ const CollaborativeRoom = ({roomId, roomMetadata} : CollaborativeRoomProps) => {
 
         <div className="flex w-full flex-1 justify-end gap-2 sm:gap-3">
             <ActiveCollaborators/>
+            <ShareModal 
+              roomId={roomId}
+              collaborators={users}
+              creatorId={roomMetadata.creatorId}
+              currentUserType={currentUserType}
+            />
             <SignedOut>
           <SignInButton />
         </SignedOut>
@@ -120,7 +127,7 @@ const CollaborativeRoom = ({roomId, roomMetadata} : CollaborativeRoomProps) => {
         </div>
         
       </Header>
-      <Editor />
+      <Editor roomId={roomId} currentUserType={currentUserType}/>
           </div>
         </ClientSideSuspense>
       </RoomProvider>
